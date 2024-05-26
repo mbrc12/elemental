@@ -11,11 +11,15 @@ fun main() {
     // This handles macOS support and helps on Windows.
     if (StartupHelper.startNewJvmIfRequired())
       return
+
+    val displayMode = Lwjgl3ApplicationConfiguration.getDisplayMode()
+
     Lwjgl3Application(Main(), Lwjgl3ApplicationConfiguration().apply {
-        useVsync(true);
-        setForegroundFPS(Lwjgl3ApplicationConfiguration.getDisplayMode().refreshRate);
+//        useVsync(true);
+//        setForegroundFPS(displayMode.refreshRate);
+//        System.out.println(displayMode)
+        setFullscreenMode(displayMode)
         setTitle("Elemental")
-        setWindowedMode(640, 480)
         setWindowIcon(*(arrayOf(128, 64, 32, 16).map { "libgdx$it.png" }.toTypedArray()))
     })
 }

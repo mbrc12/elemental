@@ -33,5 +33,6 @@ class VisualSystem(val batch: SpriteBatch, val camera: Camera) :
 
     override fun endProcessing() {
         batch.end()
+//        info("fps", Gdx.graphics.framesPerSecond)
     }
 }

@@ -74,6 +74,10 @@ class FirstScreen(val resources: Resources) : KtxScreen {
         b2dr.render(world, viewport.camera.combined)
 
         world.step(delta, 6,2)
+
+//        info(Gdx.graphics.framesPerSecond)
+
+//        info(player.kinematics.body.linearVelocity)
     }
 
     override fun resize(width: Int, height: Int) {

@@ -12,11 +12,9 @@ import com.badlogic.gdx.physics.box2d.World
 import ktx.ashley.propertyFor
 import ktx.box2d.body
 import ktx.box2d.circle
-import ktx.math.plus
 import ktx.math.times
 import kotlin.math.absoluteValue
 import kotlin.math.pow
-import kotlin.math.roundToInt
 import kotlin.math.sign
 
 class KinematicsC() : Component {
@@ -37,6 +35,7 @@ var Entity.kinematics by propertyFor<KinematicsC>()
 
 class MovementSystem(val player: Entity) : EntitySystem() {
     val dq = Vector2()
+    val spriteCenter = Vector2()
 
     init {
         priority = MOVEMENT_PRIORITY
@@ -48,7 +47,7 @@ class MovementSystem(val player: Entity) : EntitySystem() {
         val body = player.kinematics.body
         val velocity = body.linearVelocity
         val speed = velocity.len()
-        val accel = 1 - (speed / SPEED).pow(3)
+        val accel = 30 * (1 - (speed / SPEED).pow(3))
 
         if (Gdx.input.isKeyPressed(Keys.D)) {
             dq.x += 1
@@ -61,16 +60,8 @@ class MovementSystem(val player: Entity) : EntitySystem() {
             dq.setZero()
         }
 
-        if ((dq.x.sign - velocity.x.sign).absoluteValue < 1e-6 && !dq.isZero) {
-            body.linearVelocity += dq * accel * deltaTime * 100
-        } else {
-            body.linearVelocity = dq * BASE_SPEED
-        }
-
         val sprite = player.sprite.sprite
-        val position = body.position
-
-        sprite.setOriginBasedPosition(position.x, position.y)
+        spriteCenter.set(sprite.x + sprite.originX, sprite.y + sprite.originY)
 
         if (dq.x > 0) {
             sprite.setFlip(true, false)
@@ -78,5 +69,16 @@ class MovementSystem(val player: Entity) : EntitySystem() {
         if (dq.x < 0) {
             sprite.setFlip(false, false)
         }
+
+        if ((dq.x.sign - velocity.x.sign).absoluteValue < 1e-6 && !dq.isZero) {
+            body.linearVelocity = dq.scl(accel * SPEED ).add(body.linearVelocity)
+        } else {
+            body.linearVelocity = dq * BASE_SPEED
+        }
+
+//        info(dq)
+
+        val position = body.position
+        sprite.setOriginBasedPosition(position.x, position.y)
     }
 }

@@ -11,6 +11,8 @@ const val WIDTH = 400f
 const val HEIGHT = 300f
 const val GRAVITY = 9f
 
+const val EPSILON = 1e-6
+
 const val SPEED = 150f
 const val BASE_SPEED = 70f
 
