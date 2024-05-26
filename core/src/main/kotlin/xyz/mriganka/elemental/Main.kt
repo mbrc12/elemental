@@ -2,14 +2,14 @@ package xyz.mriganka.elemental
 
 import com.badlogic.ashley.core.Component
 import com.badlogic.ashley.core.Entity
-import com.badlogic.ashley.core.EntitySystem
 import com.badlogic.ashley.core.PooledEngine
 import com.badlogic.gdx.Gdx
-import com.badlogic.gdx.Input.Keys
 import com.badlogic.gdx.assets.AssetManager
 import com.badlogic.gdx.graphics.Color
+import com.badlogic.gdx.graphics.g2d.Sprite
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.math.Vector2
+import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer
 import com.badlogic.gdx.utils.ScreenUtils
 import com.badlogic.gdx.utils.viewport.FitViewport
 import ktx.app.KtxGame
@@ -18,8 +18,7 @@ import ktx.ashley.add
 import ktx.ashley.entity
 import ktx.ashley.tagFor
 import ktx.ashley.with
-import ktx.math.plusAssign
-import ktx.math.times
+import ktx.box2d.createWorld
 
 class Main : KtxGame<KtxScreen>() {
     private val manager = AssetManager()
@@ -42,57 +41,42 @@ class PlayerC() : Component
 var Entity.isPlayer by tagFor<PlayerC>()
 
 class FirstScreen(val resources: Resources) : KtxScreen {
-    private val player: Entity
     private val batch = SpriteBatch()
     private val viewport = FitViewport(WIDTH, HEIGHT)
+
     private val engine = PooledEngine()
+    private val player: Entity
+
+    private val world = createWorld(gravity = Vector2(0f, -GRAVITY))
+    private val b2dr = Box2DDebugRenderer()
 
     init {
         engine.add {
             player = entity {
                 with<PlayerC> { }
-                with<TextureC> { texture = resources.character }
-                with<TransformC> { }
+                with<KinematicsC> { setupPlayerBody(world) }
+                with<SpriteC> {
+                    sprite = Sprite(resources.character)
+                    sprite.setOriginCenter()
+                }
             }
         }
 
         engine.addSystem(VisualSystem(batch, viewport.camera))
-        engine.addSystem(InputSystem(player))
+        engine.addSystem(MovementSystem(player))
     }
 
     override fun render(delta: Float) {
         ScreenUtils.clear(Color.LIGHT_GRAY)
+
         engine.update(delta)
+
+        b2dr.render(world, viewport.camera.combined)
+
+        world.step(delta, 6,2)
     }
 
     override fun resize(width: Int, height: Int) {
         viewport.update(width, height)
-    }
-}
-
-class InputSystem(val player: Entity): EntitySystem() {
-    val dq = Vector2()
-
-    init {
-        priority = INPUT_PRIORITY
-    }
-
-    override fun update(deltaTime: Float) {
-        dq.setZero()
-
-        if (Gdx.input.isKeyPressed(Keys.A)) {
-            dq.x -= 1
-        }
-        if (Gdx.input.isKeyPressed(Keys.D)) {
-            dq.x += 1
-        }
-        if (Gdx.input.isKeyPressed(Keys.S)) {
-            dq.y -= 1
-        }
-        if (Gdx.input.isKeyPressed(Keys.W)) {
-            dq.y += 1
-        }
-
-        player.transform.translation += dq * deltaTime * SPEED
     }
 }
